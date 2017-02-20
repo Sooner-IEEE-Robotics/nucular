@@ -31,10 +31,10 @@
 
 I2C i2c(PB_9, PB_8);       //sda, scl
 SPI spi(PB_5, PB_4, PA_5); // mosi, miso, sclk
-short image[160][120];
-int jpeg = 238 - 48;
-DigitalOut cs(PA_4);
-char YUV422[]=    //20 bits
+short image[160][120];     //unused here
+int jpeg = 238 - 48;       //too lazy to actually math
+DigitalOut cs(PA_4);       // chip enable pin for SPI
+char YUV422[]=    //20 bits; sets to YUV mode
 {
    0xFF, 0x00 ,
    0x05, 0x00 ,
@@ -48,7 +48,7 @@ char YUV422[]=    //20 bits
    0xff, 0xff 
 };
 
-char JPEG_INIT[] =     //190
+char JPEG_INIT[] =     //190; configures as jpeg
  {  0xff, 0x00 ,
    0x2c, 0xff ,
    0x2e, 0xdf ,
@@ -241,7 +241,7 @@ char JPEG_INIT[] =     //190
    0x5c, 0x00 ,
    0xff, 0xff ,
 };    /* JPG 160x120 */
-char size_JPEG[]=     //39
+char size_JPEG[]=     //39; JPEG size configuration
 {  0xff, 0x01 ,
    0x12, 0x40 ,
    0x17, 0x11 ,
@@ -283,7 +283,7 @@ char size_JPEG[]=     //39
    0xe0, 0x00 ,
    0xff, 0xff ,
 };
-void CS_LOW(void)
+/*void CS_LOW(void)                                  //unused, borrowed from library for reference purposes only
     {
         cs = 0;
     }
@@ -318,7 +318,7 @@ uint8_t read_fifo(void)
         uint8_t data = 0;
         data = spi.write(SINGLE_FIFO_READ);
         return data;
-    }
+    }*/
  
 Serial serial(USBTX, USBRX); 
 
@@ -339,46 +339,46 @@ void setup(){//read for i2c is 0x61, write is 0x60
 void start(){
        int spiTest = 0;
       
-        cs = 0; spi.write(0x00 | RWBIT); spi.write(0xff); cs = 1;
+        cs = 0; spi.write(0x00 | RWBIT); spi.write(0xff); cs = 1;               //read/write from SPI to test configuration
         cs = 0; spi.write(0x00);  spiTest = spi.write(0x00); cs = 1;
         wait_ms(1);
-        if(spiTest != 0xff)
+        if(spiTest != 0xff)                                                     //error handling
             {serial.printf("SPI is broken af\r\n");}
         if(spiTest == 0xff)
             {serial.printf("SPI is totally working\r\n");}
         
         int data = 0;
-        cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_CLEAR_MASK|FIFO_WRPTR_RST_MASK); cs = 1;
-        wait_us(50);
+        cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_CLEAR_MASK|FIFO_WRPTR_RST_MASK); cs = 1;//resets fifo position, clears fifo memory
+        wait_us(50);        //lets things happen
         //cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_WRPTR_RST_MASK);cs = 1;
-        cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_START_MASK);cs = 1;
+        cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_START_MASK);cs = 1;            //tells the camera to begin capturing
         
         
         
-        while (data == 0)
+        while (data == 0)    //waits until camera is done taking the picture, should take a second or two at most
         {cs = 0; spi.write(ARDUCHIP_TRIG); data = spi.write(0x00) & CAP_DONE_MASK; cs = 1;
          serial.printf("DONE?: %d\r\n",data);
-         wait(1);
+         wait(1);   //keeps from spamming the serial port
         }
     }
 
 void imageToFile() {
         int data = 0;
-        for(int count = 0; count < 19200; count++){
+        for(int count = 0; count < 19200; count++){                             //reads out every other pixel in order to capture monochrome b/w image only
         cs = 0; spi.write(SINGLE_FIFO_READ); data = spi.write(0x00); cs = 1;
         cs = 0; spi.write(SINGLE_FIFO_READ); spi.write(0x00); cs = 1;
         serial.printf("%d\r\n",data);}
 }
 int main() {
-   serial.baud(115200);
+   serial.baud(115200);                         //begins communication via USB
    serial.printf("Beginning capture.\r\n");
-   spi.frequency(100000);
+   spi.frequency(100000);                       //setup SPI
    spi.format(8,0);
-   i2c.frequency(100000);
-   wait(.1);
+   i2c.frequency(100000);                       //setup I2C
+   wait(.1);                                    //allows time for things to settle out
    
    
-   setup();  //tested, probably working
-   start();  //tested, probably working
-   imageToFile();
+   setup();  //tested, probably working         //configures camera
+   start();  //tested, probably working         //takes picture
+   imageToFile();                               //sends file to appropriately configured terminal recorder
 }
