@@ -323,7 +323,7 @@ uint8_t read_fifo(void)
 Serial serial(USBTX, USBRX); 
 
 
-void setup(){//read for i2c is 0x61, write is 0x60
+void setup(void){//read for i2c is 0x61, write is 0x60
   char * point; 
   for(int count = 0; count < 20; count+=2) {//switches to YUV
     i2c.write(0x60, &YUV422[count], 2);
@@ -336,7 +336,7 @@ void setup(){//read for i2c is 0x61, write is 0x60
   cs = 0; spi.write(0x00); spi.write(0x00);  cs = 1;//wakes up the SPI 
 }
 
-void start(){
+void start(void){
   int spiTest = 0;
 
   cs = 0; spi.write(0x00 | RWBIT); spi.write(0xff); cs = 1;               //read/write from SPI to test configuration
@@ -362,7 +362,7 @@ void start(){
   }
 }
 
-void doTheThing() {
+void doTheThing(void) {
   for(int x = 0; x < 160; x++) {
     for(int y = 0; y < 120; y++) {
       int data = 0;
@@ -378,7 +378,7 @@ void doTheThing() {
   }
 }
 
-int main() {
+int main(void) {
  serial.baud(115200);                         //begins communication via USB
  serial.printf("Beginning capture.\r\n");
  spi.frequency(100000);                       //setup SPI
