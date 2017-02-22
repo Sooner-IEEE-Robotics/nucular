@@ -240,7 +240,7 @@ static char JPEG_INIT[] =     //190; configures as jpeg
    0x5c, 0x00 ,
    0xff, 0xff ,
 };    /* JPG 160x120 */
-char size_JPEG[]=     //39; JPEG size configuration
+static char size_JPEG[]=     //39; JPEG size configuration
 {  0xff, 0x01 ,
  0x12, 0x40 ,
  0x17, 0x11 ,
