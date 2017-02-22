@@ -31,10 +31,9 @@
 
 I2C i2c(PB_9, PB_8);       //sda, scl
 SPI spi(PB_5, PB_4, PA_5); // mosi, miso, sclk
-short image[160][120];     //unused here
-int jpeg = 238 - 48;       //too lazy to actually math
+// int jpeg 238 - 48;        //too lazy to actually math
 DigitalOut cs(PA_4);       // chip enable pin for SPI
-char YUV422[]=    //20 bits; sets to YUV mode
+static char YUV422[]=    //20 bits; sets to YUV mode
 {
  0xFF, 0x00 ,
  0x05, 0x00 ,
@@ -48,7 +47,7 @@ char YUV422[]=    //20 bits; sets to YUV mode
  0xff, 0xff 
 };
 
-char JPEG_INIT[] =     //190; configures as jpeg
+static char JPEG_INIT[] =     //190; configures as jpeg
 {  0xff, 0x00 ,
  0x2c, 0xff ,
  0x2e, 0xdf ,
@@ -322,72 +321,84 @@ uint8_t read_fifo(void)
 
 Serial serial(USBTX, USBRX); 
 
+class Camera {
 
-void setup(void){//read for i2c is 0x61, write is 0x60
-  char * point; 
-  for(int count = 0; count < 20; count+=2) {//switches to YUV
-    i2c.write(0x60, &YUV422[count], 2);
-  }
-  for(int count = 0; count < 380; count+=2){//switches to JPEG
-    i2c.write(0x60, &JPEG_INIT[count], 2);
-  }    
-  for(int count = 0; count < 78; count+=2)
-      {i2c.write(0x60, &size_JPEG[count],2 );}//switches to small size JPEG
-  cs = 0; spi.write(0x00); spi.write(0x00);  cs = 1;//wakes up the SPI 
-}
+  private:
 
-void start(void){
-  int spiTest = 0;
+    static int hasDoneSetup = 0;
 
-  cs = 0; spi.write(0x00 | RWBIT); spi.write(0xff); cs = 1;               //read/write from SPI to test configuration
-  cs = 0; spi.write(0x00);  spiTest = spi.write(0x00); cs = 1;
-  wait_ms(1);
-  if(spiTest != 0xff)                                                     //error handling
-    {serial.printf("SPI is broken af\r\n");}
-  if(spiTest == 0xff)
-    {serial.printf("SPI is totally working\r\n");}
-  
-  int data = 0;
-  cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_CLEAR_MASK|FIFO_WRPTR_RST_MASK); cs = 1;//resets fifo position, clears fifo memory
-  wait_us(50);        //lets things happen
-  //cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_WRPTR_RST_MASK);cs = 1;
-  cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_START_MASK);cs = 1;            //tells the camera to begin capturing
-  
-  
-  
-  while (data == 0) { //waits until camera is done taking the picture, should take a second or two at most
-    cs = 0; spi.write(ARDUCHIP_TRIG); data = spi.write(0x00) & CAP_DONE_MASK; cs = 1;
-    serial.printf("DONE?: %d\r\n",data);
-    wait(1);   //keeps from spamming the serial port
-  }
-}
+    static void setup(void) { //read for i2c is 0x61, write is 0x60
 
-void doTheThing(void) {
-  for(int x = 0; x < 160; x++) {
-    for(int y = 0; y < 120; y++) {
-      int data = 0;
-      cs = 0;
-      data = spi.write(SINGLE_FIFO_READ); // reads out every other pixel in order to capture monochrome b/w image only
-      cs = 1;
-      cs = 0;
-      spi.write(SINGLE_FIFO_READ); // Discard this pixel
-      cs = 1;
-      // serial.printf("%d\r\n", data);
-      image[x][y] = data;
+      serial.baud(115200);                         //begins communication via USB
+      serial.printf("Beginning capture.\r\n");
+      spi.frequency(100000);                       //setup SPI
+      spi.format(8,0);
+      i2c.frequency(100000);                       //setup I2C
+      wait(.1);                                    //allows time for things to settle out
+
+      char * point; 
+      for(int count = 0; count < 20; count+=2) {//switches to YUV
+        i2c.write(0x60, &YUV422[count], 2);
+      }
+      for(int count = 0; count < 380; count+=2) {//switches to JPEG
+        i2c.write(0x60, &JPEG_INIT[count], 2);
+      }    
+      for(int count = 0; count < 78; count+=2) {
+        i2c.write(0x60, &size_JPEG[count],2 );
+      }//switches to small size JPEG
+      cs = 0; spi.write(0x00); spi.write(0x00);  cs = 1;//wakes up the SPI 
     }
-  }
-}
 
-int main(void) {
- serial.baud(115200);                         //begins communication via USB
- serial.printf("Beginning capture.\r\n");
- spi.frequency(100000);                       //setup SPI
- spi.format(8,0);
- i2c.frequency(100000);                       //setup I2C
- wait(.1);                                    //allows time for things to settle out
- 
- 
- setup();  //tested, probably working         //configures camera
- start();  //tested, probably working         //takes picture
- doTheThing(); // Read image into the image array
+    static void doTheThing(void) {
+      for(int x = 0; x < 160; x++) {
+        for(int y = 0; y < 120; y++) {
+          int data = 0;
+          cs = 0;
+          data = spi.write(SINGLE_FIFO_READ); // reads out every other pixel in order to capture monochrome b/w image only
+          cs = 1;
+          cs = 0;
+          spi.write(SINGLE_FIFO_READ); // Discard this pixel
+          cs = 1;
+          // serial.printf("%d\r\n", data);
+          Camera::image[x][y] = data;
+        }
+      }
+    }
+
+  public:
+
+    static short image[160][120];
+
+    static void takePicture(void) {
+
+      if(!Camera::hasDoneSetup) {
+        Camera::setup();
+      }
+
+      int spiTest = 0;
+
+      cs = 0; spi.write(0x00 | RWBIT); spi.write(0xff); cs = 1;               //read/write from SPI to test configuration
+      cs = 0; spi.write(0x00);  spiTest = spi.write(0x00); cs = 1;
+      wait_ms(1);
+      if(spiTest != 0xff)                                                     //error handling
+        {serial.printf("SPI is broken af\r\n");}
+      if(spiTest == 0xff)
+        {serial.printf("SPI is totally working\r\n");}
+      
+      int data = 0;
+      cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_CLEAR_MASK|FIFO_WRPTR_RST_MASK); cs = 1;//resets fifo position, clears fifo memory
+      wait_us(50);        //lets things happen
+      //cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_WRPTR_RST_MASK);cs = 1;
+      cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_START_MASK);cs = 1;            //tells the camera to begin capturing
+      
+      
+      
+      while (data == 0) { //waits until camera is done taking the picture, should take a second or two at most
+        cs = 0; spi.write(ARDUCHIP_TRIG); data = spi.write(0x00) & CAP_DONE_MASK; cs = 1;
+        serial.printf("DONE?: %d\r\n",data);
+        wait(1);   //keeps from spamming the serial port
+      }
+      Camera::doTheThing();
+    }
+
 }
