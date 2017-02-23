@@ -389,7 +389,7 @@ class Camera {
 
       for(int x = 0; x < 160; x++) {
         for(int y = 0; y < 120; y++) {
-          int data = 0;
+          short data = 0;
           cs = 0;
           data = spi.write(SINGLE_FIFO_READ); // reads out every other pixel in order to capture monochrome b/w image only
           cs = 1;
