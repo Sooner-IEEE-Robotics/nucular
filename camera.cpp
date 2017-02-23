@@ -349,27 +349,11 @@ class Camera {
       cs = 0; spi.write(0x00); spi.write(0x00);  cs = 1;//wakes up the SPI 
     }
 
-    static void doTheThing(void) {
-      for(int x = 0; x < 160; x++) {
-        for(int y = 0; y < 120; y++) {
-          int data = 0;
-          cs = 0;
-          data = spi.write(SINGLE_FIFO_READ); // reads out every other pixel in order to capture monochrome b/w image only
-          cs = 1;
-          cs = 0;
-          spi.write(SINGLE_FIFO_READ); // Discard this pixel
-          cs = 1;
-          // serial.printf("%d\r\n", data);
-          Camera::image[x][y] = data;
-        }
-      }
-    }
-
   public:
 
-    static short image[160][120];
+    static short** takePicture(void) {
 
-    static void takePicture(void) {
+      short image[160][120]; // TODO: Do we need to allocate this memory or is it automagically done for us?
 
       if(!Camera::hasDoneSetup) {
         Camera::setup();
@@ -398,7 +382,25 @@ class Camera {
         serial.printf("DONE?: %d\r\n",data);
         wait(1);   //keeps from spamming the serial port
       }
-      Camera::doTheThing();
+
+
+
+      // Now, let's fetch the data.
+
+      for(int x = 0; x < 160; x++) {
+        for(int y = 0; y < 120; y++) {
+          int data = 0;
+          cs = 0;
+          data = spi.write(SINGLE_FIFO_READ); // reads out every other pixel in order to capture monochrome b/w image only
+          cs = 1;
+          cs = 0;
+          spi.write(SINGLE_FIFO_READ); // Discard this pixel
+          cs = 1;
+          // serial.printf("%d\r\n", data);
+          image[x][y] = data;
+        }
+      }
+      return image;
     }
 
 }
