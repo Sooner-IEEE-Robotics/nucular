@@ -6,6 +6,6 @@
 class Camera {
 	public:
 		static short** takePicture(void);
-}
+};
 
 #endif

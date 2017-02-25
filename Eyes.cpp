@@ -29,8 +29,8 @@ unsigned Eyes::filteredNumberOfCircles(cv::vector<cv::Vec3f> circles) {
 }
 
 unsigned Eyes::numberOfDots(void) { // An unsigned integer makes more sense here than does a signed one, but error reporting becomes harder
-	short thing[160][120] = Camera::takePicture();
-	std::vector<std::vector<short>> img;
+	short **thing = Camera::takePicture();
+	std::vector<std::vector<short> > img;
 	for(int i = 0; i < 160; i++) {
 		img.push_back(std::vector<short>());
 		for(int j = 0; j < 120; j++) {
