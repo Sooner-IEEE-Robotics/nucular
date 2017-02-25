@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
 #include "Eyes.hpp"
+#include "Camera.hpp"
 
 // KERNEL_WIDTH must be a positive, odd integer
 #define KERNEL_WIDTH 5
