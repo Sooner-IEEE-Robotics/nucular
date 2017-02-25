@@ -29,7 +29,7 @@ unsigned Eyes::filteredNumberOfCircles(cv::vector<cv::Vec3f> circles) {
 }
 
 unsigned Eyes::numberOfDots(void) { // An unsigned integer makes more sense here than does a signed one, but error reporting becomes harder
-	cv::Mat image = cv::imdecode(Camera::takePicture());
+	cv::Mat image = cv::imdecode(Camera::takePicture(), 0);
 	cv::vector<cv::Vec3f> circles; // HoughCircles will assign to this values of (x, y, r)
 	cv::GaussianBlur(image, image, cv::Size(KERNEL_WIDTH, KERNEL_WIDTH), 0, 0); // (input, output, kernel size, sigma_x, sigma_y)
 	cv::HoughCircles(image, circles, CV_HOUGH_GRADIENT, 1, MINIMUM_OFFSET, UPPER_THRESHOLD, LOWER_THRESHOLD, MINIMUM_RADIUS, MAXIMUM_RADIUS);

@@ -4,7 +4,8 @@
 #include <stdio.h>
 
 class Camera {
-	static short** takePicture(void);
+	public:
+		static short** takePicture(void);
 }
 
 #endif
