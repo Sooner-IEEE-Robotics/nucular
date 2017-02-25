@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <opencv/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include "Eyes.hpp"
 
 // KERNEL_WIDTH must be a positive, odd integer
