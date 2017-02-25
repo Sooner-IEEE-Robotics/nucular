@@ -3,7 +3,7 @@
 
 class Eyes {
 	private:
-		static unsigned filteredNumberOfCircles(vector<cv::Vec3f> circles);
+		static unsigned filteredNumberOfCircles(cv::vector<cv::Vec3f> circles);
 	public:
 		static unsigned numberOfDots(void);
-}
+};
