@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <opencv3/opencv.hpp>
+#include <opencv/opencv.hpp>
 
 class Eyes {
 	private:
