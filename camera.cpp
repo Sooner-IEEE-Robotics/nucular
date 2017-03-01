@@ -1,4 +1,5 @@
 #include "mbed.h"
+#include <vector>
 
 
 //read for i2c is 0x61, write is 0x60
@@ -351,9 +352,9 @@ class Camera {
 
   public:
 
-    static vector<vector<short>> takePicture(void) {
+    static vector<vector<short> > takePicture(void) {
 
-      vector<vector<short>> image; // TODO: Do we need to allocate this memory or is it automagically done for us?
+      vector<vector<short> > image; // TODO: Do we need to allocate this memory or is it automagically done for us?
       
       for(int i = 0; i < 160; i++) { // Get the image vector set up
         image.push_back(vector<short>());
