@@ -12,7 +12,6 @@ IT WILL SEND THE MEASURED VALUE OVER USB.
 
 #include "Detector.hpp"
 
-#define DEFAULT_SAMPLE 50
 //Define necessary pins for communicatation with the metal detector.
 const static PinName metalDetectorWritePin = PF_13;
 const static PinName metalDetectorReadPin = PE_9;
@@ -58,7 +57,7 @@ int Detector::detectMetal(void) {
     return replyDuration; 
 }
 
-int Detector::calibrate(int calNum = DEFAULT_SAMPLE) {               //calibrates via averaging calNum number of detector reads
+int Detector::calibrate(int calNum) {               //calibrates via averaging calNum number of detector reads
     int result = 0;             //assumes no metal at the calibration spot
     for(int counter = 0; counter < calNum; counter++){
         result += detectMetal();
