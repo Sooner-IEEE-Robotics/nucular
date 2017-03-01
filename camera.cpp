@@ -411,4 +411,4 @@ class Camera {
       return image;
     }
 
-}
+};
