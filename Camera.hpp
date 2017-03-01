@@ -5,6 +5,9 @@
 #include <vector>
 
 class Camera {
+	private:
+		static int hasDoneSetup;
+	    static void setup(void);
 	public:
 		static vector<vector<short> > takePicture(void);
 };
