@@ -319,7 +319,7 @@ uint8_t read_fifo(void)
         return data;
     }*/
 
-Serial serial(USBTX, USBRX); 
+Serial serial(USBTX, USBRX);
 
 class Camera {
 
@@ -351,9 +351,13 @@ class Camera {
 
   public:
 
-    static short** takePicture(void) {
+    static std::vector<std::vector<short>> takePicture(void) {
 
-      short image[160][120]; // TODO: Do we need to allocate this memory or is it automagically done for us?
+      std::vector<std::vector<short>> image; // TODO: Do we need to allocate this memory or is it automagically done for us?
+      
+      for(int i = 0; i < 160; i++) { // Get the image vector set up
+        image.push_back(std::vector<short>());
+      }
 
       if(!Camera::hasDoneSetup) {
         Camera::setup();
@@ -400,7 +404,7 @@ class Camera {
           spi.write(0x00); // Discard this pixel
           cs = 1;
           // serial.printf("%d\r\n", data);
-          image[x][y] = data;
+          image.at(x).push_back(data);
         }
       }
       return image;
