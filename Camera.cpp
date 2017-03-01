@@ -322,93 +322,83 @@ uint8_t read_fifo(void)
 
 Serial serial(USBTX, USBRX);
 
-class Camera {
+void Camera::setup(void) { //read for i2c is 0x61, write is 0x60
 
-  private:
+  serial.baud(115200);                         //begins communication via USB
+  serial.printf("Beginning capture.\r\n");
+  spi.frequency(100000);                       //setup SPI
+  spi.format(8,0);
+  i2c.frequency(100000);                       //setup I2C
+  wait(.1);                                    //allows time for things to settle out
 
-    static int hasDoneSetup;
+  char * point; 
+  for(int count = 0; count < 20; count+=2) {//switches to YUV
+    i2c.write(0x60, &YUV422[count], 2);
+  }
+  for(int count = 0; count < 380; count+=2) {//switches to JPEG
+    i2c.write(0x60, &JPEG_INIT[count], 2);
+  }    
+  for(int count = 0; count < 78; count+=2) {
+    i2c.write(0x60, &size_JPEG[count],2 );
+  }//switches to small size JPEG
+  cs = 0; spi.write(0x00); spi.write(0x00);  cs = 1;//wakes up the SPI 
+}
 
-    static void setup(void) { //read for i2c is 0x61, write is 0x60
+vector<vector<short> > Camera::takePicture(void) {
 
-      serial.baud(115200);                         //begins communication via USB
-      serial.printf("Beginning capture.\r\n");
-      spi.frequency(100000);                       //setup SPI
-      spi.format(8,0);
-      i2c.frequency(100000);                       //setup I2C
-      wait(.1);                                    //allows time for things to settle out
+  vector<vector<short> > image; // TODO: Do we need to allocate this memory or is it automagically done for us?
 
-      char * point; 
-      for(int count = 0; count < 20; count+=2) {//switches to YUV
-        i2c.write(0x60, &YUV422[count], 2);
-      }
-      for(int count = 0; count < 380; count+=2) {//switches to JPEG
-        i2c.write(0x60, &JPEG_INIT[count], 2);
-      }    
-      for(int count = 0; count < 78; count+=2) {
-        i2c.write(0x60, &size_JPEG[count],2 );
-      }//switches to small size JPEG
-      cs = 0; spi.write(0x00); spi.write(0x00);  cs = 1;//wakes up the SPI 
+  for(int i = 0; i < 160; i++) { // Get the image vector set up
+    image.push_back(vector<short>());
+  }
+
+  if(!Camera::hasDoneSetup) {
+    Camera::setup();
+  }
+
+  int spiTest = 0;
+
+  cs = 0; spi.write(0x00 | RWBIT); spi.write(0xff); cs = 1;               //read/write from SPI to test configuration
+  cs = 0; spi.write(0x00);  spiTest = spi.write(0x00); cs = 1;
+  wait_ms(1);
+  if(spiTest != 0xff)                                                     //error handling
+    {serial.printf("SPI is broken af\r\n");}
+  if(spiTest == 0xff)
+    {serial.printf("SPI is totally working\r\n");}
+
+  int data = 0;
+  cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_CLEAR_MASK|FIFO_WRPTR_RST_MASK); cs = 1;//resets fifo position, clears fifo memory
+  wait_us(50);        //lets things happen
+  //cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_WRPTR_RST_MASK);cs = 1;
+  cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_START_MASK);cs = 1;            //tells the camera to begin capturing
+
+
+
+  while (data == 0) { //waits until camera is done taking the picture, should take a second or two at most
+    cs = 0; spi.write(ARDUCHIP_TRIG); data = spi.write(0x00) & CAP_DONE_MASK; cs = 1;
+    serial.printf("DONE?: %d\r\n",data);
+    wait(1);   //keeps from spamming the serial port
+  }
+
+
+
+  // Now, let's fetch the data.
+
+  for(int x = 0; x < 160; x++) {
+    for(int y = 0; y < 120; y++) {
+      short data = 0;
+      cs = 0;
+      spi.write(0x00);
+      spi.write(SINGLE_FIFO_READ);
+      data = spi.write(0x00); // reads out every other pixel in order to capture monochrome b/w image only
+      cs = 1;
+      cs = 0;
+      spi.write(SINGLE_FIFO_READ);
+      spi.write(0x00); // Discard this pixel
+      cs = 1;
+      // serial.printf("%d\r\n", data);
+      image.at(x).push_back(data);
     }
-
-  public:
-
-    static vector<vector<short> > takePicture(void) {
-
-      vector<vector<short> > image; // TODO: Do we need to allocate this memory or is it automagically done for us?
-      
-      for(int i = 0; i < 160; i++) { // Get the image vector set up
-        image.push_back(vector<short>());
-      }
-
-      if(!Camera::hasDoneSetup) {
-        Camera::setup();
-      }
-
-      int spiTest = 0;
-
-      cs = 0; spi.write(0x00 | RWBIT); spi.write(0xff); cs = 1;               //read/write from SPI to test configuration
-      cs = 0; spi.write(0x00);  spiTest = spi.write(0x00); cs = 1;
-      wait_ms(1);
-      if(spiTest != 0xff)                                                     //error handling
-        {serial.printf("SPI is broken af\r\n");}
-      if(spiTest == 0xff)
-        {serial.printf("SPI is totally working\r\n");}
-      
-      int data = 0;
-      cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_CLEAR_MASK|FIFO_WRPTR_RST_MASK); cs = 1;//resets fifo position, clears fifo memory
-      wait_us(50);        //lets things happen
-      //cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_WRPTR_RST_MASK);cs = 1;
-      cs = 0; spi.write(ARDUCHIP_FIFO | RWBIT); spi.write(FIFO_START_MASK);cs = 1;            //tells the camera to begin capturing
-      
-      
-      
-      while (data == 0) { //waits until camera is done taking the picture, should take a second or two at most
-        cs = 0; spi.write(ARDUCHIP_TRIG); data = spi.write(0x00) & CAP_DONE_MASK; cs = 1;
-        serial.printf("DONE?: %d\r\n",data);
-        wait(1);   //keeps from spamming the serial port
-      }
-
-
-
-      // Now, let's fetch the data.
-
-      for(int x = 0; x < 160; x++) {
-        for(int y = 0; y < 120; y++) {
-          short data = 0;
-          cs = 0;
-          spi.write(0x00);
-          spi.write(SINGLE_FIFO_READ);
-          data = spi.write(0x00); // reads out every other pixel in order to capture monochrome b/w image only
-          cs = 1;
-          cs = 0;
-          spi.write(SINGLE_FIFO_READ);
-          spi.write(0x00); // Discard this pixel
-          cs = 1;
-          // serial.printf("%d\r\n", data);
-          image.at(x).push_back(data);
-        }
-      }
-      return image;
-    }
-
-};
+  }
+  return image;
+}
