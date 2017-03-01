@@ -6,7 +6,7 @@
 
 class Detector {
 	private:
-	    static int calibrate(void);
+	    static int calibrate(int sampleSize);
 	public:
 		static int detectMetal(void); // Returns an integer representing the confidence in the presence of metal
 };
