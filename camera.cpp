@@ -351,12 +351,12 @@ class Camera {
 
   public:
 
-    static std::vector<std::vector<short>> takePicture(void) {
+    static vector<vector<short>> takePicture(void) {
 
-      std::vector<std::vector<short>> image; // TODO: Do we need to allocate this memory or is it automagically done for us?
+      vector<vector<short>> image; // TODO: Do we need to allocate this memory or is it automagically done for us?
       
       for(int i = 0; i < 160; i++) { // Get the image vector set up
-        image.push_back(std::vector<short>());
+        image.push_back(vector<short>());
       }
 
       if(!Camera::hasDoneSetup) {
