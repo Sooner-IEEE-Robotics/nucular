@@ -20,7 +20,7 @@ int main() {
         wait_ms(200);
 
         //Get a measurement from the metal detector.
-        metalDetectorReply = Dector::detectMetal();
+        metalDetectorReply = Detector::detectMetal();
         outputToComputer.printf("CalVal: %d",calval);
 
         //Inform the computer of the metal detector's measurement. Higher means greater likelihood of metal!
