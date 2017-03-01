@@ -391,10 +391,13 @@ class Camera {
         for(int y = 0; y < 120; y++) {
           short data = 0;
           cs = 0;
-          data = spi.write(SINGLE_FIFO_READ); // reads out every other pixel in order to capture monochrome b/w image only
+          spi.write(0x00);
+          spi.write(SINGLE_FIFO_READ);
+          data = spi.write(0x00); // reads out every other pixel in order to capture monochrome b/w image only
           cs = 1;
           cs = 0;
-          spi.write(SINGLE_FIFO_READ); // Discard this pixel
+          spi.write(SINGLE_FIFO_READ);
+          spi.write(0x00); // Discard this pixel
           cs = 1;
           // serial.printf("%d\r\n", data);
           image[x][y] = data;
