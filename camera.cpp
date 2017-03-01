@@ -325,7 +325,7 @@ class Camera {
 
   private:
 
-    static int hasDoneSetup = 0;
+    static int hasDoneSetup;
 
     static void setup(void) { //read for i2c is 0x61, write is 0x60
 
