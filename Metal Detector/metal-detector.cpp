@@ -12,7 +12,7 @@ IT WILL SEND THE MEASURED VALUE OVER USB.
 
 #include "Detector.hpp"
 
-const static int calNum = 50;
+#define DEFAULT_SAMPLE 50
 //Define necessary pins for communicatation with the metal detector.
 const static PinName metalDetectorWritePin = PF_13;
 const static PinName metalDetectorReadPin = PE_9;
@@ -42,7 +42,7 @@ int Detector::detectMetal(void) {
     metalDetectorWriter.write(1);
     
     //Wait 1 millisecond.
-    wait_ms(1);    
+    wait_ms(1);
     
     //Deactivate metal detector.
     metalDetectorWriter.write(0);
@@ -50,7 +50,7 @@ int Detector::detectMetal(void) {
     
     
     //As long as the metalDetector is sending a HIGH signal, continuously increment the reply duration.      
-    while((FASTDIG >> 11 )&(1)) {    //rewrote using register access to give faster read times
+    while((FASTDIG >> 11 )&(1)) { // rewrote using register access to give faster read times
         replyDuration++;
     }
     
@@ -58,10 +58,10 @@ int Detector::detectMetal(void) {
     return replyDuration; 
 }
 
-int Detector::calibrate(void) {               //calibrates via averaging calNum number of detector reads
+int Detector::calibrate(int calNum = DEFAULT_SAMPLE) {               //calibrates via averaging calNum number of detector reads
     int result = 0;             //assumes no metal at the calibration spot
     for(int counter = 0; counter < calNum; counter++){
-        result+= detectMetal();
+        result += detectMetal();
     } 
     return result/calNum;
 }
@@ -69,7 +69,7 @@ int Detector::calibrate(void) {               //calibrates via averaging calNum 
 int main() {
     int calval = Detector::calibrate();                   //calibrates metal detector
     GPIOE_OSPEEDER |= (1 << 23);                //sets gpio to fastest possible speed supposedly
-    GPIOE_OSPEEDER |= (1 << 22);             
+    GPIOE_OSPEEDER |= (1 << 22);
     int metalDetectorReply = 0;
     while(1){    
         //For debugging purposes, alert the computer that the main method has been called.
@@ -79,7 +79,7 @@ int main() {
         wait_ms(200);
 
         //Get a measurement from the metal detector.
-        metalDetectorReply = Dector::detectMetal();    
+        metalDetectorReply = Dector::detectMetal();
         outputToComputer.printf("CalVal: %d",calval);
 
         //Inform the computer of the metal detector's measurement. Higher means greater likelihood of metal!
