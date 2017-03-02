@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project(Sooner-IEEE-Robot-Die-Recognition)
+find_package(OpenCV REQUIRED)
+add_executable(Eyes Eyes.cpp)
+target_link_libraries(Eyes ${OpenCV_LIBS})
