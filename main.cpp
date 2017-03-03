@@ -2,6 +2,7 @@
 #include "mbed.h"
 
 #include "Metal Detector/Detector.hpp"
+#include "Eyes.hpp"
 
 //Instantiate an object to communicate with the computer via USB.
 const static Serial outputToComputer(USBTX, USBRX);
@@ -14,14 +15,14 @@ int main() {
     int metalDetectorReply = 0;
     while(1){    
         //For debugging purposes, alert the computer that the main method has been called.
-        outputToComputer.printf("FOR DEBUG: Main method now running. Detector will activate in 10 seconds.\r\n");
+        outputToComputer.printf("FOR DEBUG: Main method now running. Detector and camera will activate in 10 seconds.\r\n");
         metalDetectorReply = 0;
         //Someday we can start the measurement on button press, but for now let's just allow 10 seconds and then measure.
         wait_ms(200);
 
         //Get a measurement from the metal detector.
         metalDetectorReply = Detector::detectMetal();
-        outputToComputer.printf("CalVal: %d",calval);
+        outputToComputer.printf("CalVal: %d", calval);
 
         //Inform the computer of the metal detector's measurement. Higher means greater likelihood of metal!
         outputToComputer.printf("Detected:%d\r\n", metalDetectorReply);
@@ -30,5 +31,7 @@ int main() {
         } else {
             led = 000;
         }
+        int numberOfDots = Eyes::numberOfDots();
+        outputToComputer.printf("-----SoonerBot/Eyes: Identified %d dots on die.", numberOfDots);
     }
 }
