@@ -13,7 +13,7 @@ int main() {
     GPIOE_OSPEEDER |= (1 << 23);                //sets gpio to fastest possible speed supposedly
     GPIOE_OSPEEDER |= (1 << 22);
     int metalDetectorReply = 0;
-    while(1){    
+    while(1) {
         //For debugging purposes, alert the computer that the main method has been called.
         outputToComputer.printf("FOR DEBUG: Main method now running. Detector and camera will activate in 10 seconds.\r\n");
         metalDetectorReply = 0;
