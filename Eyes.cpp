@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <opencv2/opencv.hpp>
 #include "Eyes.hpp"
 #include "Camera.hpp"
 
