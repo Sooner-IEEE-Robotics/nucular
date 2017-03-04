@@ -138,12 +138,16 @@ INCLUDE_PATHS += -I../mbed/TARGET_NUCLEO_F207ZG/TOOLCHAIN_GCC_ARM
 INCLUDE_PATHS += -I../mbed/drivers
 INCLUDE_PATHS += -I../mbed/hal
 INCLUDE_PATHS += -I../mbed/platform
-# This will be ignored if it doesn't exist, but adding it allows me to compile this code using my Homebrew version of OpenCV
-INCLUDE_PATHS += -I/usr/local/Cellar/opencv/2.4.13.2/include
 
 LIBRARY_PATHS := -L../mbed/TARGET_NUCLEO_F207ZG/TOOLCHAIN_GCC_ARM 
 LIBRARIES := -l:libmbed.a 
 LINKER_SCRIPT := ../mbed/TARGET_NUCLEO_F207ZG/TOOLCHAIN_GCC_ARM/STM32F207ZGTx_FLASH.ld
+
+# This will be ignored if it doesn't exist, but adding it allows me to compile this code using my Homebrew version of OpenCV
+INCLUDE_PATHS += -I/usr/local/Cellar/opencv/2.4.13.2/include 
+LIBRARY_PATHS += -L/usr/local/Cellar/opencv/2.4.13.2/lib 
+# This will not be ignored.
+LIBRARIES += -lopencv_core 
 
 # Objects and Paths
 ###############################################################################
