@@ -1103,7 +1103,7 @@ USB_OTG_HostChannelTypeDef;
 #define DMA2_Stream7        ((DMA_Stream_TypeDef *) DMA2_Stream7_BASE)
 #define ETH                 ((ETH_TypeDef *) ETH_BASE)
 #define DCMI                ((DCMI_TypeDef *) DCMI_BASE)
-#define RNG                 ((RNG_TypeDef *) RNG_BASE)
+#define MBED_RNG                 ((RNG_TypeDef *) RNG_BASE)
 #define FSMC_Bank1          ((FSMC_Bank1_TypeDef *) FSMC_Bank1_R_BASE)
 #define FSMC_Bank1E         ((FSMC_Bank1E_TypeDef *) FSMC_Bank1E_R_BASE)
 #define FSMC_Bank2_3        ((FSMC_Bank2_3_TypeDef *) FSMC_Bank2_3_R_BASE)
@@ -7973,7 +7973,7 @@ USB_OTG_HostChannelTypeDef;
                                         ((INSTANCE) == SPI3))
 
 /******************************* RNG Instances ********************************/
-#define IS_RNG_ALL_INSTANCE(INSTANCE)  ((INSTANCE) == RNG)
+#define IS_RNG_ALL_INSTANCE(INSTANCE)  ((INSTANCE) == MBED_RNG)
 
 /****************************** RTC Instances *********************************/
 #define IS_RTC_ALL_INSTANCE(INSTANCE)  ((INSTANCE) == RTC)
