@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "mbed.h"
 
-#include "Metal Detector/Detector.hpp"
+#include "Detector/Detector.hpp"
 #include "Eyes.hpp"
 
 //Instantiate an object to communicate with the computer via USB.

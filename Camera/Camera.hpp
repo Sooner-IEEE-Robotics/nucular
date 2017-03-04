@@ -9,7 +9,7 @@ class Camera {
 		static int hasDoneSetup;
 	    static void setup(void);
 	public:
-		static vector<vector<short> > takePicture(void);
+		static std::vector<std::vector<short> > takePicture(void);
 };
 
 #endif

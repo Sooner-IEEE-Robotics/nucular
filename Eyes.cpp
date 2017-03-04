@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "Eyes.hpp"
-#include "Camera.hpp"
+#include "Camera/Camera.hpp"
 
 // KERNEL_WIDTH must be a positive, odd integer
 #define KERNEL_WIDTH 5

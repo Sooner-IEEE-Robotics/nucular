@@ -1,5 +1,6 @@
 #include "mbed.h"
 #include <vector>
+#include "Camera.hpp"
 
 
 //read for i2c is 0x61, write is 0x60
