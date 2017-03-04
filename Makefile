@@ -47,6 +47,9 @@ PROJECT := Argus
 # Objects and Paths
 
 OBJECTS += Argus.o
+OBJECTS += Eyes.o
+OBJECTS += Camera/Camera.o
+OBJECTS += Detector/Detector.o
 
  SYS_OBJECTS += mbed/TARGET_NUCLEO_F207ZG/TOOLCHAIN_GCC_ARM/stm32f2xx_hal_smartcard.o
  SYS_OBJECTS += mbed/TARGET_NUCLEO_F207ZG/TOOLCHAIN_GCC_ARM/PeripheralPins.o
