@@ -5,8 +5,8 @@
 #include "Eyes.hpp"
 
 //Instantiate an object to communicate with the computer via USB.
-const static Serial outputToComputer(USBTX, USBRX);
-const static BusOut led(LED1,LED2,LED3);  //controls leds
+static Serial outputToComputer(USBTX, USBRX);
+static BusOut led(LED1,LED2,LED3);  //controls leds
 
 int main() {
     int calval = Detector::calibrate();                   //calibrates metal detector

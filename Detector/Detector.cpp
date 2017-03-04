@@ -18,16 +18,12 @@ const static PinName metalDetectorReadPin = PE_9;
 const static PinName test = PE_11;
 //Instantiate a DigitalOut object called metalDetectorWriter.
 //This object can send digital signals to the metal detector to turn it on or off.
-const static DigitalOut metalDetectorWriter(metalDetectorWritePin);
-const static DigitalIn t(test);
+static DigitalOut metalDetectorWriter(metalDetectorWritePin);
+static DigitalIn t(test);
 //Instantiate a DigitalIn object called metalDetectorReader.
 //This object can read digital signals from the metal detector.
 //DigitalIn metalDetectorReader(metalDetectorReadPin);
 
-
-//0x4002 1000 GPIOE start address
-#define GPIOE_OSPEEDER (*(volatile unsigned int *)0x40021008)
-#define FASTDIG (*(volatile unsigned short *)0x40021010)
 
 //Activates the metal detector and returns an integer that represents its confidence in the presence of metal.
 int Detector::detectMetal(void) {

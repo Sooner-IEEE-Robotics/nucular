@@ -332,7 +332,7 @@ void Camera::setup(void) { //read for i2c is 0x61, write is 0x60
   i2c.frequency(100000);                       //setup I2C
   wait(.1);                                    //allows time for things to settle out
 
-  char * point; 
+  // char * point; 
   for(int count = 0; count < 20; count+=2) {//switches to YUV
     i2c.write(0x60, &YUV422[count], 2);
   }
