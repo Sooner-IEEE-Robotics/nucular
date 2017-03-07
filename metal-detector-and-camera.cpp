@@ -1,9 +1,7 @@
 /*
-
 THIS PROGRAM IS THE COMINATION OF THE CAMERA FUNCTIONS AND THE METAL DETECTOR FUNCTIONS
 WHEN UPLOADED, THIS PROGRAM WILL WAIT 10 SECONDS AND THEN ACTIVATE THE METAL DETECTOR. SOON AFTERWARD,
 IT WILL SEND THE MEASURED VALUE OVER USB.
-
 */
 
 
@@ -31,10 +29,10 @@ BusOut led(LED1, LED2, LED3);  //controls leds
 #define GPIOE_OSPEEDER (*(volatile unsigned int *)0x40021008)
 #define FASTDIG (*(volatile unsigned short *)0x40021010)
 
-  /*****************************************************************************
+							   /*****************************************************************************
 							   camera header starts here
-  ******************************************************************************/
-//#include "mbed.h"
+							   ******************************************************************************/
+							   //#include "mbed.h"
 
 
 							   //read for i2c is 0x61, write is 0x60
@@ -85,7 +83,7 @@ const int OUTER_DOT_RADIUS = 9; //The distance from the center of a dot at which
 								//variety of values. This parameter should definitely be altered once the camera is mounted and we get a feel for
 								//the distance of the dots.
 
-//---------End of camera adjustable parameters---------
+								//---------End of camera adjustable parameters---------
 
 
 								//The 1D array into which image data is read.
@@ -551,7 +549,7 @@ void printImage()
 
 // formerly main to CameraWithDotCounting.cpp
 int cameraWithDotCounting() {
-	serial.baud(115200);                         //begins communication via USB
+
 	serial.printf("Beginning capture.\r\n");
 	spi.frequency(100000);                       //setup SPI
 	spi.format(8, 0);
@@ -571,19 +569,21 @@ int cameraWithDotCounting() {
 	return countDots();
 }
 /*****************************************************************
-			camera ends and metal detector starts
+camera ends and metal detector starts
 *******************************************************************/
 
 //--------------------adjustable global variables (metal detector)------------------
 
 int calNum = 50;
-int ideal_metal_reply = 10;		// changes to last detection value ever itteration of is_metal 
+//int ideal_metal_reply = 10;     // changes to last detection value ever itteration of is_metal 
 short error_range = 4;
 
-short slope_of_metal_loss = 1;	// how rapid the decrese has to be to signal the absence of metal and vise-versa
-int mesurment_delay = 100;		// the delay betweensamples in is_metal 
-short one = 0, two = 0, three = 0, four = 0; // a recorf of the last four values with four being the most resent value
-
+short slope_of_metal_loss = 25;  // how rapid the decrese has to be to signal the absence of metal and vise-versa
+int mesurment_delay = 100;      // the delay betweensamples in is_metal 
+int one = 0, two = 0, three = 0, four = 0; // a recorf of the last four values with four being the most resent value
+int old_one = 0, old_two = 0, old_three = 0, old_four = 0;
+int avg1 = 888, avg2 = 888;
+bool last_return;
 // ---------------------end of adjustable variables---------------------------------
 
 //Activates the metal detector and returns an integer that represents its confidence in the presence of metal.
@@ -600,7 +600,7 @@ int detectMetal() {
 
 	//Deactivate metal detector.
 	metalDetectorWriter.write(0);
-	wait_us(2);
+	wait_us(3);
 
 
 	//As long as the metalDetector is sending a HIGH signal, continuously increment the reply duration.      
@@ -613,45 +613,59 @@ int detectMetal() {
 }
 
 int calibrate() {               //calibrates via averaging calNum number of detector reads
-	int result = 0;             //assumes no metal at the calibration spot
+	int result = 0;            //assumes no metal at the calibration spot
+							   /*for(int count = 0; count < 1000; count++){
+							   detectMetal();
+							   }*/
 	for (int counter = 0; counter < calNum; counter++) {
 		result += detectMetal();
+		wait_ms(100);
 	}
 	return result / calNum;
 }
 
-bool is_metal(int mesurment) {		
-	/* the first if statment checks if there is a sharp change, 
+bool is_metal(int mesurment) {
+	/* the first if statment checks if there is a sharp change,
 	the second is ment to prevent false negitives by the reading slow slow changes in the output */
-	
-	// takes four samples 100 miliseconds apart
-		one = two;
-		two = three;
-		three = four;
-		four = mesurment; // gives four the most resent value
 
-														// checks for an upward slope in values 
-	if (((four - three) > slope_of_metal_loss) &&
-		((three - two ) > slope_of_metal_loss) &&
-		(( two - one  ) > slope_of_metal_loss)) {
-		
-		ideal_metal_reply = four;		// asignes the highest value in the memory for reference
+	// takes four samples 100 miliseconds apart
+
+	old_one = old_two;
+	old_two = old_three;
+	old_three = old_four;
+	old_four = one;
+
+
+	one = two;
+	two = three;
+	three = four;
+	four = mesurment; // gives four the most resent value
+
+	avg1 = (old_one + old_two + old_three + old_four) / 4;
+	avg2 = (one + two + three + four) / 4;
+
+	outputToComputer.printf("avg1: %d \t avg2: %d\r\n", avg1, avg2);
+
+	// checks for an upward slope in values 
+	if ((avg2 - avg1) > slope_of_metal_loss) {
+		last_return = true;
 		return true;
 	}
-												// checks for a downward slope in values 
-	else if ((( one - two ) > slope_of_metal_loss) &&
-			((two - three ) > slope_of_metal_loss) &&
-			((three - four) > slope_of_metal_loss)) {
-		ideal_metal_reply = one;		// asignes the highest value in the memory for reference
+	// checks for a downward slope in values 
+	else if ((avg1 - avg2) > slope_of_metal_loss) {
+		last_return = false;
 		return false;
 	}
-
-		// adjustes the value to help with the dedredation in metaldetector values	
-	if( mesurment >= ( ideal_metal_reply - error_range )) {
-		ideal_metal_reply = mesurment;
-		return true;
+	else {
+		return last_return;
 	}
-	else return false;
+
+	// adjustes the value to help with the dedredation in metaldetector values  
+	//    if( mesurment >= ( ideal_metal_reply - error_range )) {
+	//        ideal_metal_reply = avg2;
+	//        return true;
+	//    }
+	//    else return false;
 
 
 
@@ -663,49 +677,44 @@ bool initiate_camera() {//return true when you want the camera to start
 	return false;
 }
 
-		// return false when you want to stop the detector and true to start
-bool start_detector() {
-	wait(10);
-	return true;        // magic
-}
+// return false when you want to stop the detector and true to start
 
 int main() {
+	//For debugging purposes, alert the computer that the main method has been called.
+	serial.baud(115200);                         //begins communication via USB
+	outputToComputer.printf("FOR DEBUG: Main method now running. Detector will activate in 10 seconds.\r\n");
 	int calval = calibrate();                   //calibrates metal detector
-	
+
 
 	GPIOE_OSPEEDER |= (1 << 23);                //sets gpio to fastest possible speed supposedly
 	GPIOE_OSPEEDER |= (1 << 22);
 	int metalDetectorReply = 0;
 
 	while (true) {
-			//For debugging purposes, alert the computer that the main method has been called.
-			//   outputToComputer.printf("FOR DEBUG: Main method now running. Detector will activate in 10 seconds.\r\n");
-		metalDetectorReply = 0;
-			//Someday we can start the measurement on button press, but for now let's just allow 10 seconds and then measure.
-		if ( !(start_detector()))
-		{
-			continue;
-		}
-			//Get a measurement from the metal detector.
-		metalDetectorReply = detectMetal();
-		outputToComputer.printf("CalVal: %d", calval);
 
-			//Inform the computer of the metal detector's measurement. Higher means greater likelihood of metal!
+
+
+		//Someday we can start the measurement on button press, but for now let's just allow 10 seconds and then measure.
+
+		//Get a measurement from the metal detector.
+		metalDetectorReply = detectMetal();
+		outputToComputer.printf("CalVal: %d   ", calval);
+
+		//Inform the computer of the metal detector's measurement. Higher means greater likelihood of metal!
 		outputToComputer.printf("Detected:%d\r\n", metalDetectorReply);
 
 		wait_ms(mesurment_delay);  // a delay so it can check for a sharp change
 		if (is_metal(metalDetectorReply))
 		{
 			led = 0b111;  //controls leds on the nucleo-------------
-			outputToComputer.printf("this is metal");
+			outputToComputer.printf("this is metal\r\n");
 		}
-		else
+		else {
 			led = 000;
-		if (!(initiate_camera())) {
-			cameraWithDotCounting();
+			outputToComputer.printf("this is  not metal\r\n");
 		}
+
 	}
 
 
 }
-
