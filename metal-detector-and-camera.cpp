@@ -585,6 +585,7 @@ int avg1 = 888, avg2 = 888;
 bool last_return = false;
 int count = 0;
 
+int aray_size = calNum * 2;
 int vals[200];
 
 
@@ -626,7 +627,7 @@ int calibrate() {               //calibrates via averaging calNum number of dete
         result += mesurment;
         wait_ms(100);
         vals[counter] = mesurment;
-        vals[counter + 100] = mesurment;
+        vals[counter + calNum] = mesurment;
     }
     return result / calNum;
 }
@@ -654,16 +655,16 @@ bool is_metal(int mesurment) {
 
 avg1= 0;
 avg2=0;
-    for (int i = 0; i < 19; i++){
+    for (int i = 0; i < aray_size; i++){
         vals[i] = vals[i + 1];
         }
-        vals[19] = mesurment;
-for (int i = 0; i < 10; i++){
+        vals[aray_size - 1] = mesurment;
+for (int i = 0; i < aray_size / 2; i++){
     avg1 += vals[i];
-    avg2 += vals[i+10];
+    avg2 += vals[i + (aray_size / 2)];
     }
-avg1 /= 10;
-avg2 /= 10;
+avg1 /= aray_size / 2;
+avg2 /= aray_size / 2;
 
     outputToComputer.printf("avg1: %d \t avg2: %d\t diff: %d\r\n", avg1, avg2, avg2 - avg1);
 
@@ -745,7 +746,4 @@ j++;
 //        }
         
     }
-    
-
-
 }
