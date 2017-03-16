@@ -55,13 +55,13 @@ const int IMAGE_WIDTH = 160;
 const int IMAGE_HEIGHT = 120;
 
 //Strategic parameters:
-const int BLACK_WHITE_THRESHOLD = 85; //This should be perfected when the LED is mounted under the robot and we see what
+const int BLACK_WHITE_THRESHOLD = 30; //This should be perfected when the LED is mounted under the robot and we see what
                                       //the lighting will actually be like. For Trevor's early sample images, 90 was definitely best.
                                       //For subsequent sample images, 80 has been effective, though we have not seriously looked for an
                                       //optimal value. 
 const int INNER_DOT_RADIUS = 2; //The distance from the center of a dot within which we expect to find black.
                                 //I believe 2 is and will remain optimal.
-const int OUTER_DOT_RADIUS = 7; //The distance from the center of a dot at which we expect to find white.
+const int OUTER_DOT_RADIUS = 6; //The distance from the center of a dot at which we expect to find white.
                                 //For Trevor's early sample images, 7 was superior, though consistently correct results could be achieved with a
                                 //variety of values. This parameter should definitely be altered once the camera is mounted and we get a feel for
                                 //the distance of the dots.
@@ -500,7 +500,8 @@ void calibrate() {               //calibrates via averaging calNum number of det
         
     }
 void setup(){
-    metalDetectorWriter = 1; 
+    metalDetectorWriter = 1;
+    serial.baud(115200); 
     serial.printf("Beginning capture.\r\n");
     spi.frequency(100000);                       //setup SPI
     spi.format(8, 0);
@@ -579,13 +580,13 @@ void printImage()
         {
             if (getPixel(i, j) > BLACK_WHITE_THRESHOLD)
             {
-                serial.printf("1");
+                outputToComputer.printf("1");
             }
             else {
-                serial.printf("0");
+                outputToComputer.printf("0");
             }
         }
-        serial.printf("\r\n");
+        outputToComputer.printf("\r\n");
     }
 }
 
@@ -599,7 +600,7 @@ int cameraWithDotCounting() {
     start();  //tested, probably working         //takes picture
     writePixelDataToImageArray();                //Sends data to imageArray, where it can later be counted by countDots().
 
-                                                 //printImage();                                //Prints via serial the image that has just been read into imageArray.
+    printImage();                                //Prints via serial the image that has just been read into imageArray.
                                                  //This is only for testing purposes and should be removed before
                                                  //competition.
 
@@ -637,7 +638,7 @@ int main() {
         
         //outputToComputer.printf("Ceil: %d\r\n",ceiling);
         //outputToComputer.printf("Base: %d\r\n",basement);
-        outputToComputer.printf("Det: %d\r\n", metalDetectorReply);
+        //outputToComputer.printf("Det: %d\r\n", metalDetectorReply);
         //outputToComputer.printf("Target: %f\r\n", ceiling *1.006);
         if(metalDetectorReply < basement){
                                         basement = metalDetectorReply;
